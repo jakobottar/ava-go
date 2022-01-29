@@ -5,7 +5,7 @@ Edit `config.json` to include your secret token.
 
 ## ToDo List
 
-* Mention sender in "pong" response
+* ~~Mention sender in "pong" response~~
 * !echo command
 * Voice channel creator
 * Role manager with reactions (like carl)

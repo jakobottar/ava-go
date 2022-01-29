@@ -12,14 +12,12 @@ var goBot *discordgo.Session
 
 func Start() {
 	goBot, err := discordgo.New("Bot " + config.Token)
-
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
 	u, err := goBot.User("@me")
-
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -30,7 +28,6 @@ func Start() {
 	goBot.AddHandler(messageHandler)
 
 	err = goBot.Open()
-
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -40,11 +37,14 @@ func Start() {
 }
 
 func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// if the message is from the bot, return (prevent loops)
 	if m.Author.ID == BotId {
 		return
 	}
 
+	// ping command - check for life
 	if m.Content == "ping" {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "pong")
+		// mention the sender back and say pong!
+		_, _ = s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", pong!")
 	}
 }
