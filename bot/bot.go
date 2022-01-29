@@ -38,8 +38,8 @@ func Start() {
 }
 
 func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// if the message is from the bot, return (prevent loops)
-	if m.Author.ID == BotId {
+	// if the message is from a bot, return (prevent loops)
+	if m.Author.Bot {
 		return
 	}
 
