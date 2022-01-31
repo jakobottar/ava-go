@@ -12,7 +12,10 @@ import (
 )
 
 var BotId string
-var goBot *discordgo.Session
+
+// const (
+// 	membersPageLimit = 1000
+// )
 
 func Start() {
 	goBot, err := discordgo.New("Bot " + config.Token)
@@ -21,14 +24,8 @@ func Start() {
 		return
 	}
 
-	u, err := goBot.User("@me")
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	BotId = u.ID
-
+	// declare intents (needed to be able to get member info)
+	goBot.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 	goBot.AddHandler(messageHandler)
 
 	err = goBot.Open()
@@ -40,34 +37,110 @@ func Start() {
 	fmt.Println("Bot is running!")
 }
 
-func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+// with help from https://github.com/ewohltman/ephemeral-roles/blob/6bbd1e38824b73df892a269657f967eeab583e46/internal/pkg/operations/operations.go#L258
+//* I don't think I need any of this, it appears to be redundant? Or when session.State.Guild(id) fails?
+// func updateStateGuilds(session *discordgo.Session, guildID string) (*discordgo.Guild, error) {
+// 	guild, err := session.Guild(guildID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	roles, err := session.GuildRoles(guildID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	channels, err := session.GuildChannels(guildID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	members, err := getGuildMembers(session, guildID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	guild.Roles = roles
+// 	guild.Channels = channels
+// 	guild.Members = members
+// 	guild.MemberCount = len(members)
+
+// 	err = session.State.GuildAdd(guild)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return guild, nil
+// }
+
+// func getGuildMembers(session *discordgo.Session, guildID string) ([]*discordgo.Member, error) {
+// 	var members []*discordgo.Member // initialize empty array to hold all members
+// 	for {
+// 		membersPage, err := session.GuildMembers(guildID, "", membersPageLimit) // get a page of members
+// 		if err != nil {
+// 			return nil, err
+// 		}
+
+// 		members = append(members, membersPage...) // append the page to the array of members
+
+// 		if len(membersPage) < membersPageLimit { // if we got less than a full page of members, exit
+// 			break
+// 		}
+// 	}
+
+// 	return members, nil
+// }
+
+// func getGuild(session *discordgo.Session, guildID string) (*discordgo.Guild, error) {
+// 	guild, err := session.State.Guild(guildID)
+// 	if err != nil {
+// 		guild, err := updateStateGuilds(session, guildID)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return guild, nil
+// 	}
+
+// 	return guild, nil
+// }
+
+func messageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// if the message is from a bot, return (prevent loops)
-	if m.Author.Bot {
+	if msg.Author.Bot {
 		return
 	}
 
 	// ping command - check for life
-	if m.Content == "ping" {
+	if msg.Content == "ping" {
 		// mention the sender back and say pong!
-		_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", pong!")
+		_, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!")
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
+
+		guild, err := session.State.Guild(msg.GuildID)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Printf("This server has %d members!\n", guild.MemberCount)
+		for i := 0; i < len(guild.Members); i++ {
+			fmt.Println(guild.Members[i].User)
+		}
 	}
 
 	// if the first character of the message matches our bot prefix
-	if m.Content[0:1] == config.BotPrefix {
-		words := strings.Fields(m.Content) // split message string on space
-		command := words[0][1:]            // get first word and remove BotPrefix
-		args := words[1:]                  // get the rest of the message
+	if msg.Content[0:1] == config.BotPrefix {
+		words := strings.Fields(msg.Content) // split message string on space
+		command := words[0][1:]              // get first word and remove BotPrefix
+		args := words[1:]                    // get the rest of the message
 
 		switch command { // switch on command word
 		case "echo": // echo the message that was sent
-			echo(s, m, args)
+			echo(session, msg, args)
 
 		case "remindme", "remind":
-			remindMe(s, m, args)
+			remindMe(session, msg, args)
 
 		default: // if the command does not match an existing one, return
 			return
@@ -75,9 +148,9 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func echo(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func echo(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	// return a message back to the channel, echoing whatever is in the args
-	_, err := s.ChannelMessageSend(m.ChannelID, strings.Join(args, " "))
+	_, err := session.ChannelMessageSend(msg.ChannelID, strings.Join(args, " "))
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -85,7 +158,7 @@ func echo(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 }
 
 // remindme command driver function, takes commands in the order: !remindme <username> <duration> <unit> <message>
-func remindMe(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	//TODO: handle out-of-order args
 	// "remind @someone about something in 15 min"
 	// "remind 15 min to go get the recycling"
@@ -96,17 +169,17 @@ func remindMe(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	var startArgs int = 0
 
 	// if the first arg is a user @,
-	id := string(regexp.MustCompile(`\d{18}`).Find([]byte(args[0])))
-	if id != "" { // get their user struct from their id
+	id := string(regexp.MustCompile(`\d{18}`).Find([]byte(args[0]))) //! if args is empty, we fault here
+	if id != "" {                                                    // get their user struct from their id
 		var err error
-		toRemind, err = s.User(id)
+		toRemind, err = session.User(id)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
 		startArgs++
 	} else {
-		toRemind = m.Author
+		toRemind = msg.Author
 	}
 
 	// convert time arg to integer value
@@ -141,8 +214,8 @@ func remindMe(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	}
 
 	// send confirmation message
-	_, _ = s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr))
+	_, _ = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr))
 	time.Sleep(time.Duration(timerLength) * unit) // wait
 	// set reminder message
-	_, _ = s.ChannelMessageSend(m.ChannelID, toRemind.Mention()+" "+message)
+	_, _ = session.ChannelMessageSend(msg.ChannelID, toRemind.Mention()+" "+message)
 }
