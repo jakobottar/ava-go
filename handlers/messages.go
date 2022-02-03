@@ -40,6 +40,9 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		case "remindme", "remind":
 			remindMe(session, msg, args)
 
+		case "shuffle":
+			shuffleVCs(session, msg)
+
 		default: // if the command does not match an existing one, return
 			return
 		}

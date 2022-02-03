@@ -20,6 +20,7 @@ func Start() {
 	// declare intents (needed to be able to get member info)
 	goBot.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 	goBot.AddHandler(handlers.MessageHandler)
+	goBot.AddHandler(handlers.VoiceStateHandler)
 
 	err = goBot.Open()
 	if err != nil {
