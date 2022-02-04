@@ -13,7 +13,8 @@ import (
 
 func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// if the message is from a bot, return (prevent loops)
-	if msg.Author.Bot {
+	//  or if the message is only an image, it's content is empty
+	if msg.Author.Bot || msg.Content == "" {
 		return
 	}
 
