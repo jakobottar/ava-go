@@ -15,4 +15,4 @@ Edit `config.json` to include your secret token.
   * ~~Better arg parsing~~
 * !help page
 * Package into container
-* logger
+* ~~logger~~
