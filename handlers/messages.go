@@ -3,6 +3,7 @@ package handlers
 import (
 	"ava-go/config"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -20,10 +21,11 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 
 	// ping command - check for life
 	if msg.Content == "ping" {
+		log.Println("caught ping message.")
 		// mention the sender back and say pong!
 		_, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!")
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Fatalln(err.Error())
 			return
 		}
 	}
@@ -54,7 +56,7 @@ func echo(session *discordgo.Session, msg *discordgo.MessageCreate, args []strin
 	// return a message back to the channel, echoing whatever is in the args
 	_, err := session.ChannelMessageSend(msg.ChannelID, strings.Join(args, " "))
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalln(err.Error())
 		return
 	}
 }
@@ -91,13 +93,13 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 		if id != "" { // if 'name' is a user id or mention
 			mention, err = session.User(id)
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Fatalln(err.Error())
 				return
 			}
 		} else { // if 'name' is nickname or username
 			guild, err := session.State.Guild(msg.GuildID)
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Fatalln(err.Error())
 				return
 			}
 
