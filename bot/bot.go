@@ -3,7 +3,7 @@ package bot
 import (
 	"ava-go/config"
 	"ava-go/handlers"
-	"fmt"
+	"log"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -13,7 +13,7 @@ var BotId string
 func Start() {
 	goBot, err := discordgo.New("Bot " + config.Token)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalln(err.Error())
 		return
 	}
 
@@ -24,9 +24,9 @@ func Start() {
 
 	err = goBot.Open()
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalln(err.Error())
 		return
 	}
 
-	fmt.Println("Bot is running!")
+	log.Println("bot is running!")
 }

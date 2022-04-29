@@ -3,13 +3,22 @@ package main
 import (
 	"ava-go/bot"
 	"ava-go/config"
-	"fmt"
+	"log"
+	"os"
 )
 
 func main() {
-	err := config.ReadConfig()
+	f, err := os.OpenFile("bot.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatal(err)
+		return
+	}
+	defer f.Close()
+	log.SetOutput(f)
+
+	err = config.ReadConfig()
+	if err != nil {
+		log.Println(err.Error())
 		return
 	}
 

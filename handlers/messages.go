@@ -3,6 +3,7 @@ package handlers
 import (
 	"ava-go/config"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -20,10 +21,11 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 
 	// ping command - check for life
 	if msg.Content == "ping" {
+		log.Println("msghandler: caught ping command")
 		// mention the sender back and say pong!
 		_, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!")
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Fatalln(err.Error())
 			return
 		}
 	}
@@ -36,12 +38,15 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 
 		switch command { // switch on command word
 		case "echo": // echo the message that was sent
+			log.Println("msghandler: caught echo command")
 			echo(session, msg, args)
 
 		case "remindme", "remind":
+			log.Println("msghandler: caught remindme command")
 			remindMe(session, msg, args)
 
 		case "shuffle":
+			log.Println("msghandler: caught shuffle command")
 			shuffleVCs(session, msg)
 
 		default: // if the command does not match an existing one, return
@@ -54,9 +59,11 @@ func echo(session *discordgo.Session, msg *discordgo.MessageCreate, args []strin
 	// return a message back to the channel, echoing whatever is in the args
 	_, err := session.ChannelMessageSend(msg.ChannelID, strings.Join(args, " "))
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatalln(err.Error())
 		return
 	}
+
+	log.Println("echo: echoing '", strings.Join(args, " "), "'")
 }
 
 // remindme command driver function, takes commands in the order: !remindme <username> <duration> <unit> <message>
@@ -64,6 +71,8 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 	if len(args) < 2 {
 		return
 	}
+
+	log.Println("remindme: parsing 'remindme' args...")
 
 	var timerLength int = 1                  // timer length
 	var mention *discordgo.User = msg.Author // find user to mention
@@ -91,13 +100,13 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 		if id != "" { // if 'name' is a user id or mention
 			mention, err = session.User(id)
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Fatalln(err.Error())
 				return
 			}
 		} else { // if 'name' is nickname or username
 			guild, err := session.State.Guild(msg.GuildID)
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Fatalln(err.Error())
 				return
 			}
 
@@ -133,9 +142,12 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 		message = strings.Join(args[unitIdx+1:], " ")
 	}
 
+	log.Println(fmt.Sprintf("remindme: set for %s in %d %s", mention.Username, timerLength, unitStr))
+
 	// send confirmation message
 	_, _ = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr))
 	time.Sleep(time.Duration(timerLength) * unit) // wait
 	// set reminder message
 	_, _ = session.ChannelMessageSend(msg.ChannelID, mention.Mention()+" "+message)
+	log.Println(fmt.Sprintf("remindme: reminder for %s sent", mention.Username))
 }
