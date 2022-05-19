@@ -6,15 +6,16 @@ import (
 	"log"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/pkg/errors"
 )
 
 var BotId string
 
-func Start() {
-	goBot, err := discordgo.New("Bot " + config.Token)
+func Start() (goBot *discordgo.Session, err error) {
+	goBot, err = discordgo.New("Bot " + config.Token)
+
 	if err != nil {
-		log.Fatalln(err.Error())
-		return
+		return nil, errors.Wrapf(err, "Failed to create bot")
 	}
 
 	// declare intents (needed to be able to get member info)
@@ -22,11 +23,11 @@ func Start() {
 	goBot.AddHandler(handlers.MessageHandler)
 	goBot.AddHandler(handlers.VoiceStateHandler)
 
-	err = goBot.Open()
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
+	if err = goBot.Open(); err != nil {
+		return nil, errors.Wrapf(err, "Failed to open bot")
 	}
 
 	log.Println("bot is running!")
+
+	return
 }
