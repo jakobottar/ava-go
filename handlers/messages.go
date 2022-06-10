@@ -123,13 +123,13 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 	unitStr = strings.ToLower(args[unitIdx])
 	var unit time.Duration
 	switch unitStr {
-	case "minute", "min", "m":
+	case "minutes", "minute", "mins", "min", "m":
 		unit = time.Minute
 		unitStr = "minutes"
-	case "second", "sec", "s":
+	case "seconds", "second", "secs", "sec", "s":
 		unit = time.Second
 		unitStr = "seconds"
-	case "hour", "hr", "h":
+	case "hours", "hour", "hrs", "hr", "h":
 		unit = time.Hour
 		unitStr = "hours"
 	default:
