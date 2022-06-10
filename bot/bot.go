@@ -13,7 +13,7 @@ var BotId string
 func Start() {
 	goBot, err := discordgo.New("Bot " + config.Token)
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatalln("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
 	}
 
@@ -24,7 +24,7 @@ func Start() {
 
 	err = goBot.Open()
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatalln("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
 	}
 

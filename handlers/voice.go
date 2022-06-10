@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -77,7 +76,7 @@ func makeNewVoiceChannel(session *discordgo.Session, guildID string) {
 		ParentID: "379276406326165518", // TODO: dynamically get this ID
 	})
 
-	log.Println(fmt.Sprintf("newvoicechannel: added new channel '%s'", channelName))
+	log.Printf("newvoicechannel: added new channel '%s'\n", channelName)
 }
 
 // delete all voice channels and make new ones, to change names
@@ -89,7 +88,7 @@ func shuffleVCs(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		if channel.Type == discordgo.ChannelTypeGuildVoice {
 			_, err := session.ChannelDelete(channel.ID) //! deleting populated channels is causing error "Uknown Channel"
 			if err != nil {
-				log.Println(err.Error())
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 			}
 		}
 	}

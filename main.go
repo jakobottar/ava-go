@@ -9,12 +9,10 @@ import (
 func main() {
 	err := config.ReadConfig()
 	if err != nil {
-		log.Println(err.Error())
-		return
+		log.Fatalln("\u001b[31mERROR:\u001b[0m", err.Error())
 	}
 
 	bot.Start()
 
 	<-make(chan struct{})
-	return
 }
