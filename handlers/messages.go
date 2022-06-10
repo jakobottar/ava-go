@@ -25,7 +25,7 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		// mention the sender back and say pong!
 		_, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!")
 		if err != nil {
-			log.Fatalln(err.Error())
+			log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 			return
 		}
 	}
@@ -100,13 +100,13 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 		if id != "" { // if 'name' is a user id or mention
 			mention, err = session.User(id)
 			if err != nil {
-				log.Fatalln(err.Error())
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 				return
 			}
 		} else { // if 'name' is nickname or username
 			guild, err := session.State.Guild(msg.GuildID)
 			if err != nil {
-				log.Fatalln(err.Error())
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 				return
 			}
 
@@ -142,12 +142,12 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 		message = strings.Join(args[unitIdx+1:], " ")
 	}
 
-	log.Println(fmt.Sprintf("remindme: set for %s in %d %s", mention.Username, timerLength, unitStr))
+	log.Printf("remindme: set for %s in %d %s\n", mention.Username, timerLength, unitStr)
 
 	// send confirmation message
 	_, _ = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr))
 	time.Sleep(time.Duration(timerLength) * unit) // wait
 	// set reminder message
 	_, _ = session.ChannelMessageSend(msg.ChannelID, mention.Mention()+" "+message)
-	log.Println(fmt.Sprintf("remindme: reminder for %s sent", mention.Username))
+	log.Printf("remindme: reminder for %s sent\n", mention.Username)
 }

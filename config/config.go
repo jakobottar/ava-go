@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -21,15 +23,12 @@ func ReadConfig() error {
 	log.Println("config: reading config file...")
 	file, err := ioutil.ReadFile("./config.json")
 	if err != nil {
-		log.Fatalln(err.Error())
-		return err
+		return errors.Wrapf(err, "Failed to open config file")
 	}
 
-	// log.Println(string(file))
 	err = json.Unmarshal(file, &config)
 	if err != nil {
-		log.Fatalln(err.Error())
-		return err
+		return errors.Wrapf(err, "Failed to parse JSON format")
 	}
 
 	Token = config.Token
