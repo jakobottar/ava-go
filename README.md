@@ -14,5 +14,5 @@ Edit `config.json` to include your secret token.
   * ~~"I'll be on in 5 min" - everybody ever~~
   * ~~Better arg parsing~~
 * !help page
-* Package into container
+* ~~Package into container~~
 * ~~logger~~
