@@ -1,0 +1,6 @@
+services: 
+  ava:
+    build: .
+    container_name: ava
+    image: "ava:latest"
+    restart: unless-stopped
