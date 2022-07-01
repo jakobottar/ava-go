@@ -40,6 +40,15 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		case "echo": // echo the message that was sent
 			log.Println("msghandler: caught echo command")
 			echo(session, msg, args)
+		
+		case "glizzy": // glizzy
+			log.Println("msghandler: caught glizzy command")
+			// TODO: get these emojis not in a hard-coded way
+			_, err := session.ChannelMessageSend(msg.ChannelID, "<a:glizzyR:991176701063221338>" + strings.Join(args, " ") + "<a:glizzyL:991176582402150531>" )
+			if err != nil {
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+				return
+			}
 
 		case "remindme", "remind":
 			log.Println("msghandler: caught remindme command")
