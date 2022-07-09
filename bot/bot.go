@@ -2,22 +2,21 @@ package bot
 
 import (
 	"ava-go/handlers"
+	"errors"
 	"log"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func Start() {
+func Start() (err error) {
 	token, ok := os.LookupEnv("BOT_TOKEN")
 	if !ok {
-		log.Fatalln("\u001b[31mERROR:\u001b[0m Couldn't find environment variable $BOT_TOKEN")
-		return
+		return errors.New("couldn't find environment variable $BOT_TOKEN")
 	}
 
 	goBot, err := discordgo.New("Bot " + token)
 	if err != nil {
-		log.Fatalln("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
 	}
 
@@ -26,11 +25,11 @@ func Start() {
 	goBot.AddHandler(handlers.MessageHandler)
 	goBot.AddHandler(handlers.VoiceStateHandler)
 
-	err = goBot.Open()
-	if err != nil {
-		log.Fatalln("\u001b[31mERROR:\u001b[0m", err.Error())
+	if err = goBot.Open(); err != nil {
 		return
 	}
 
 	log.Println("bot is running!")
+
+	return nil
 }

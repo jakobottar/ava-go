@@ -1,10 +1,5 @@
 # executable
 ava-go
 
-# token
-# use `git update-index --skip-worktree <file>` to ignore changes
-# https://stackoverflow.com/a/13631525/717372
-config.json
-
-# log files 
-*.log
+# text files
+*.txt

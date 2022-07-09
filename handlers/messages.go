@@ -24,8 +24,7 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	if msg.Content == "ping" {
 		log.Println("msghandler: caught ping command")
 		// mention the sender back and say pong!
-		_, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!")
-		if err != nil {
+		if _, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!"); err != nil {
 			log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 			return
 		}
@@ -65,10 +64,11 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	}
 }
 
+// echo command driver function, echos back eveything after !echo
+// TODO: return errors, handle in MessageHandler
 func echo(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	// return a message back to the channel, echoing whatever is in the args
-	_, err := session.ChannelMessageSend(msg.ChannelID, strings.Join(args, " "))
-	if err != nil {
+	if _, err := session.ChannelMessageSend(msg.ChannelID, strings.Join(args, " ")); err != nil {
 		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
 	}
@@ -77,6 +77,7 @@ func echo(session *discordgo.Session, msg *discordgo.MessageCreate, args []strin
 }
 
 // remindme command driver function, takes commands in the order: !remindme <username> <duration> <unit> <message>
+// TODO: return errors, handle in MessageHandler
 func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	if len(args) < 2 {
 		return
