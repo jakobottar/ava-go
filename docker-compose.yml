@@ -4,3 +4,5 @@ services:
     container_name: ava
     image: "ava:latest"
     restart: unless-stopped
+    environment:
+    - BOT_TOKEN

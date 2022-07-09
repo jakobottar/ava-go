@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"ava-go/config"
 	"fmt"
 	"log"
 	"regexp"
@@ -11,6 +10,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
+
+const BOT_PREFIX = "!"
 
 func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// if the message is from a bot, return (prevent loops)
@@ -31,7 +32,7 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	}
 
 	// if the first character of the message matches our bot prefix
-	if msg.Content[0:1] == config.BotPrefix {
+	if msg.Content[0:1] == BOT_PREFIX {
 		words := strings.Fields(msg.Content) // split message string on space
 		command := words[0][1:]              // get first word and remove BotPrefix
 		args := words[1:]                    // get the rest of the message
@@ -40,11 +41,11 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		case "echo": // echo the message that was sent
 			log.Println("msghandler: caught echo command")
 			echo(session, msg, args)
-		
+
 		case "glizzy": // glizzy
 			log.Println("msghandler: caught glizzy command")
 			// TODO: get these emojis not in a hard-coded way
-			_, err := session.ChannelMessageSend(msg.ChannelID, "<a:glizzyR:991176701063221338>" + strings.Join(args, " ") + "<a:glizzyL:991176582402150531>" )
+			_, err := session.ChannelMessageSend(msg.ChannelID, "<a:glizzyR:991176701063221338>"+strings.Join(args, " ")+"<a:glizzyL:991176582402150531>")
 			if err != nil {
 				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 				return
