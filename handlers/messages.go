@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"ava-go/config"
 	"fmt"
 	"log"
 	"regexp"
@@ -11,6 +10,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
+
+const BOT_PREFIX = "!"
 
 func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// if the message is from a bot, return (prevent loops)
@@ -23,15 +24,14 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	if msg.Content == "ping" {
 		log.Println("msghandler: caught ping command")
 		// mention the sender back and say pong!
-		_, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!")
-		if err != nil {
+		if _, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!"); err != nil {
 			log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 			return
 		}
 	}
 
 	// if the first character of the message matches our bot prefix
-	if msg.Content[0:1] == config.BotPrefix {
+	if msg.Content[0:1] == BOT_PREFIX {
 		words := strings.Fields(msg.Content) // split message string on space
 		command := words[0][1:]              // get first word and remove BotPrefix
 		args := words[1:]                    // get the rest of the message
@@ -40,11 +40,11 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		case "echo": // echo the message that was sent
 			log.Println("msghandler: caught echo command")
 			echo(session, msg, args)
-		
+
 		case "glizzy": // glizzy
 			log.Println("msghandler: caught glizzy command")
 			// TODO: get these emojis not in a hard-coded way
-			_, err := session.ChannelMessageSend(msg.ChannelID, "<a:glizzyR:991176701063221338>" + strings.Join(args, " ") + "<a:glizzyL:991176582402150531>" )
+			_, err := session.ChannelMessageSend(msg.ChannelID, "<a:glizzyR:991176701063221338>"+strings.Join(args, " ")+"<a:glizzyL:991176582402150531>")
 			if err != nil {
 				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 				return
@@ -64,10 +64,11 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	}
 }
 
+// echo command driver function, echos back eveything after !echo
+// TODO: return errors, handle in MessageHandler
 func echo(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	// return a message back to the channel, echoing whatever is in the args
-	_, err := session.ChannelMessageSend(msg.ChannelID, strings.Join(args, " "))
-	if err != nil {
+	if _, err := session.ChannelMessageSend(msg.ChannelID, strings.Join(args, " ")); err != nil {
 		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
 	}
@@ -76,6 +77,7 @@ func echo(session *discordgo.Session, msg *discordgo.MessageCreate, args []strin
 }
 
 // remindme command driver function, takes commands in the order: !remindme <username> <duration> <unit> <message>
+// TODO: return errors, handle in MessageHandler
 func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
 	if len(args) < 2 {
 		return
@@ -154,9 +156,15 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 	log.Printf("remindme: set for %s in %d %s\n", mention.Username, timerLength, unitStr)
 
 	// send confirmation message
-	_, _ = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr))
+	if _, err = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr)); err != nil {
+		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+		return
+	}
 	time.Sleep(time.Duration(timerLength) * unit) // wait
 	// set reminder message
-	_, _ = session.ChannelMessageSend(msg.ChannelID, mention.Mention()+" "+message)
+	if _, err = session.ChannelMessageSend(msg.ChannelID, mention.Mention()+" "+message); err != nil {
+		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+		return
+	}
 	log.Printf("remindme: reminder for %s sent\n", mention.Username)
 }

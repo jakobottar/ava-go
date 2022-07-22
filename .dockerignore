@@ -2,4 +2,5 @@ ava-go
 *.exe
 *.log
 *.md
+*.txt
 LICENSE

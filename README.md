@@ -1,7 +1,7 @@
 # Ava
 A Discord bot written in Go. Named after the AI Ava from *Ex Machina*
 
-Edit `config.json` to include your secret token.
+Set the environment variable `BOT_TOKEN` to be your secret token.
 
 ## ToDo List
 * fix error handling/wrapping

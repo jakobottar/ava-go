@@ -39,6 +39,7 @@ func VoiceStateHandler(session *discordgo.Session, voiceState *discordgo.VoiceSt
 }
 
 // generate a map of voice channel id:population
+// TODO: return errors, handle in VoiceHandler
 func getVCMembers(guildChannels []*discordgo.Channel, voiceStates []*discordgo.VoiceState) map[string]int {
 	memberCount := make(map[string]int)
 
@@ -59,6 +60,7 @@ func getVCMembers(guildChannels []*discordgo.Channel, voiceStates []*discordgo.V
 }
 
 // make a new voice channel with a random name
+// TODO: return errors, handle in VoiceHandler
 func makeNewVoiceChannel(session *discordgo.Session, guildID string) {
 	// load channel names json file
 	var channelNames []string
@@ -81,13 +83,14 @@ func makeNewVoiceChannel(session *discordgo.Session, guildID string) {
 
 // delete all voice channels and make new ones, to change names
 // TODO: make this avoid populated channels
+// TODO: return errors, handle in VoiceHandler
 func shuffleVCs(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// delete all voice channels
 	guild, _ := session.State.Guild(msg.GuildID)
 	for _, channel := range guild.Channels {
 		if channel.Type == discordgo.ChannelTypeGuildVoice {
-			_, err := session.ChannelDelete(channel.ID) //! deleting populated channels is causing error "Uknown Channel"
-			if err != nil {
+			//! deleting populated channels is causing error "Unknown Channel"
+			if _, err := session.ChannelDelete(channel.ID); err != nil {
 				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 			}
 		}
