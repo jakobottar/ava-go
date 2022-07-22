@@ -156,9 +156,15 @@ func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []s
 	log.Printf("remindme: set for %s in %d %s\n", mention.Username, timerLength, unitStr)
 
 	// send confirmation message
-	_, _ = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr))
+	if _, err = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr)); err != nil {
+		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+		return
+	}
 	time.Sleep(time.Duration(timerLength) * unit) // wait
 	// set reminder message
-	_, _ = session.ChannelMessageSend(msg.ChannelID, mention.Mention()+" "+message)
+	if _, err = session.ChannelMessageSend(msg.ChannelID, mention.Mention()+" "+message); err != nil {
+		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+		return
+	}
 	log.Printf("remindme: reminder for %s sent\n", mention.Username)
 }
