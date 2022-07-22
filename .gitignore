@@ -1,5 +1,5 @@
 # executable
 ava-go
 
-# text files
-*.txt
+# env variables
+*.env
