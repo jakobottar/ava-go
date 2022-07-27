@@ -3,8 +3,6 @@ name: Docker Image - Stable
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   get_semver:
@@ -52,21 +50,21 @@ jobs:
             ghcr.io/jakobottar/ava:${{ needs.get_semver.outputs.semVer }}
             ghcr.io/jakobottar/ava:stable
 
-  # create_tag:
-  #   name: Push GitHub tag
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - get_semver
-  #     - build_and_publish_image
-  #   steps:
-  #     - name: Create tag
-  #       uses: actions/github-script@v3
-  #       with:
-  #         github-token: ${{ github.token }}
-  #         script: |
-  #           github.git.createRef({
-  #             owner: context.repo.owner,
-  #             repo: context.repo.repo,
-  #             ref: "refs/tags/${{ needs.get_semver.outputs.semVer }}",
-  #             sha: context.sha
-  #           })
+  create_tag:
+    name: Push GitHub tag
+    runs-on: ubuntu-latest
+    needs:
+      - get_semver
+      - build_and_publish_image
+    steps:
+      - name: Create tag
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/${{ needs.get_semver.outputs.semVer }}",
+              sha: context.sha
+            })
