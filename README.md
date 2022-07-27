@@ -7,7 +7,7 @@ Add the environment variable `BOT_TOKEN` in `.env` as your bot's secret token. C
 ```
 to launch the bot. 
 
-[![Docker Image CI](https://github.com/jakobottar/ava-go/actions/workflows/docker-image.yml/badge.svg)](https://github.com/jakobottar/ava-go/actions/workflows/docker-image.yml)
+[![Docker Image - Stable](https://github.com/jakobottar/ava-go/actions/workflows/docker-image.yml/badge.svg)](https://github.com/jakobottar/ava-go/actions/workflows/docker-image.yml)
 
 ## ToDo List
 * fix error handling/wrapping
