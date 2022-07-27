@@ -48,7 +48,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           build-args: VERSION=${{ needs.get_semver.outputs.semVer }}
-          tags: 
+          tags: |
             ghcr.io/jakobottar/ava:${{ needs.get_semver.outputs.semVer }}
             ghcr.io/jakobottar/ava:stable
 
