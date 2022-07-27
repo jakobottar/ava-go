@@ -31,6 +31,6 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/ava:${{ github.head_ref }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/ava:latest # TODO: make this use the current branch name
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/ava:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/ava:buildcache,mode=max
