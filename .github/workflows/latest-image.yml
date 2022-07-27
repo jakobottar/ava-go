@@ -1,8 +1,6 @@
 name: Docker Image - Development
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -16,6 +14,15 @@ jobs:
       -
         name: Checkout 
         uses: actions/checkout@v3
+      - # from https://github.com/marketplace/actions/clean-branch-name
+        name: Get branch name
+        uses: common-fate/branch-name
+        id: branch
+        with:
+          branch: my-branch-name # optional, defaults to the branch the action is running in
+          max-length: 32 # optional
+          remove-trailing-dash: true # optional, defaults to true
+
       -
         name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -33,6 +40,6 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/ava:${{ github.ref_name }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/ava:${{ sgithub.head_ref }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/ava:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/ava:buildcache,mode=max
