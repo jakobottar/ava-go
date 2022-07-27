@@ -1,8 +1,9 @@
 name: Docker Image - Development
 
-on:
-  pull_request:
-    branches: [ "main" ]
+# action disabled
+# on:
+#   pull_request:
+#     branches: [ "main" ]
 
 jobs:
   get_semver:
