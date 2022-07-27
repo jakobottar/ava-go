@@ -48,8 +48,8 @@ jobs:
           push: true
           build-args: VERSION=${{ needs.get_semver.outputs.semVer }}
           tags: 
-            # ${{ secrets.DOCKER_HUB_USERNAME }}/ava:stable
             ${{ secrets.DOCKER_HUB_USERNAME }}/ava:${{ needs.get_semver.outputs.semVer }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/ava:stable
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/ava:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/ava:buildcache,mode=max
 
