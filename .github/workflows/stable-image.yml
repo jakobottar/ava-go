@@ -46,6 +46,7 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
+          build-args: VERSION=${{ needs.get_semver.outputs.semVer }}
           tags: 
             ${{ secrets.DOCKER_HUB_USERNAME }}/ava:stable
             ${{ secrets.DOCKER_HUB_USERNAME }}/ava:${{ needs.get_semver.outputs.semVer }}
