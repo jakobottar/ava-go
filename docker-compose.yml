@@ -1,8 +1,7 @@
 services:
   ava:
-    build: .
     container_name: ava
-    image: "ava:latest"
+    image: "ghcr.io/jakobottar/ava:stable"
     restart: unless-stopped
     environment:
       - BOT_TOKEN
