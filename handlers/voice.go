@@ -9,8 +9,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// TODO: make sure I'm catching (and logging) all errors
-
 const BUFFER_CHANNELS = 2 // number of empty channels to leave
 
 // handler for voice state changes (user join/leave)
@@ -39,7 +37,6 @@ func VoiceStateHandler(session *discordgo.Session, voiceState *discordgo.VoiceSt
 }
 
 // generate a map of voice channel id:population
-// TODO: return errors, handle in VoiceHandler
 func getVCMembers(guildChannels []*discordgo.Channel, voiceStates []*discordgo.VoiceState) map[string]int {
 	memberCount := make(map[string]int)
 
@@ -60,9 +57,9 @@ func getVCMembers(guildChannels []*discordgo.Channel, voiceStates []*discordgo.V
 }
 
 // make a new voice channel with a random name
-// TODO: return errors, handle in VoiceHandler
 func makeNewVoiceChannel(session *discordgo.Session, guildID string) {
 	// load channel names json file
+	// TODO: ioutil is deprecated, use something else
 	var channelNames []string
 	file, _ := ioutil.ReadFile("./channel_names.json")
 	_ = json.Unmarshal(file, &channelNames)
@@ -83,7 +80,6 @@ func makeNewVoiceChannel(session *discordgo.Session, guildID string) {
 
 // delete all voice channels and make new ones, to change names
 // TODO: make this avoid populated channels
-// TODO: return errors, handle in VoiceHandler
 func shuffleVCs(session *discordgo.Session, msg *discordgo.MessageCreate) {
 	// delete all voice channels
 	guild, _ := session.State.Guild(msg.GuildID)
