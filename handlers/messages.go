@@ -1,3 +1,4 @@
+// Functions handling messages and message-related things
 package handlers
 
 import (
@@ -48,6 +49,39 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		default: // if the command does not match an existing one, return
 			return
 		}
+	}
+}
+
+// /ping driver function, responds to verify bot life
+func ping(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	// respond to interaction with success message
+	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "pong!",
+		},
+	})
+}
+
+// /glizzy command driver function, prints glizzyL, `content`, glizzyR
+func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	// get map of options
+	optionMap := mapOptions(interaction)
+
+	// respond to interaction with success message
+	// TODO: I don't think I can not respond, but at least I can hide the response
+	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "🌭",
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	})
+
+	msg := "<a:glizzyR:991176701063221338>" + optionMap["content"].StringValue() + "<a:glizzyL:991176582402150531>"
+	if _, err := session.ChannelMessageSend(interaction.ChannelID, msg); err != nil {
+		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+		return
 	}
 }
 

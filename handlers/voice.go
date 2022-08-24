@@ -1,3 +1,4 @@
+// Functions handling voice channels
 package handlers
 
 import (
@@ -54,6 +55,36 @@ func getVCMembers(guildChannels []*discordgo.Channel, voiceStates []*discordgo.V
 	}
 
 	return memberCount
+}
+
+// /shuffle driver function, deletes all voice channels and recreates them with new names
+func shuffle(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	// delete all voice channels
+	guild, _ := session.State.Guild("379276406326165515")
+	for _, channel := range guild.Channels {
+		if channel.Type == discordgo.ChannelTypeGuildVoice {
+			//! deleting populated channels is causing error "Unknown Channel"
+			if _, err := session.ChannelDelete(channel.ID); err != nil {
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+			}
+		}
+	}
+
+	log.Println("shuffle: cleared all channels")
+
+	// remake the new channels, drawing new names
+	for i := 0; i < BUFFER_CHANNELS; i++ {
+		makeNewVoiceChannel(session, guild.ID)
+	}
+
+	// respond to interaction with success message
+	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Voice channels shuffled!",
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	})
 }
 
 // make a new voice channel with a random name

@@ -34,70 +34,21 @@ var (
 	CommandHandlers = map[string]func(session *discordgo.Session, interaction *discordgo.InteractionCreate){
 		"ping": func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught ping command")
-
-			// respond to interaction with success message
-			session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "pong!",
-				},
-			})
+			ping(session, interaction)
 		},
 		"glizzy": func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught glizzy command")
+			glizzy(session, interaction)
 
-			// get map of options
-			optionMap := mapOptions(interaction)
-
-			// respond to interaction with success message
-			// TODO: I don't think I can not respond, but at least I can hide the response
-			session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "🌭",
-					Flags:   discordgo.MessageFlagsEphemeral,
-				},
-			})
-
-			msg := "<a:glizzyR:991176701063221338>" + optionMap["content"].StringValue() + "<a:glizzyL:991176582402150531>"
-			if _, err := session.ChannelMessageSend(interaction.ChannelID, msg); err != nil {
-				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-				return
-			}
 		},
 		"shuffle": func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught shuffle command")
-
-			// delete all voice channels
-			guild, _ := session.State.Guild("379276406326165515")
-			for _, channel := range guild.Channels {
-				if channel.Type == discordgo.ChannelTypeGuildVoice {
-					//! deleting populated channels is causing error "Unknown Channel"
-					if _, err := session.ChannelDelete(channel.ID); err != nil {
-						log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-					}
-				}
-			}
-
-			log.Println("shuffle: cleared all channels")
-
-			// remake the new channels, drawing new names
-			for i := 0; i < BUFFER_CHANNELS; i++ {
-				makeNewVoiceChannel(session, guild.ID)
-			}
-
-			// respond to interaction with success message
-			session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "Voice channels shuffled!",
-					Flags:   discordgo.MessageFlagsEphemeral,
-				},
-			})
+			shuffle(session, interaction)
 		},
 	}
 )
 
+// convert slashcommand options to a map object
 func mapOptions(interaction *discordgo.InteractionCreate) (optionMap map[string]*discordgo.ApplicationCommandInteractionDataOption) {
 	// get map of options
 	options := interaction.ApplicationCommandData().Options
