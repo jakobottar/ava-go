@@ -45,10 +45,6 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 			log.Println("msghandler: caught remindme command")
 			remindMe(session, msg, args)
 
-		case "shuffle":
-			log.Println("msghandler: caught shuffle command")
-			shuffleVCs(session, msg)
-
 		default: // if the command does not match an existing one, return
 			return
 		}

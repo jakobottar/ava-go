@@ -77,25 +77,3 @@ func makeNewVoiceChannel(session *discordgo.Session, guildID string) {
 
 	log.Printf("newvoicechannel: added new channel '%s'\n", channelName)
 }
-
-// delete all voice channels and make new ones, to change names
-// TODO: make this avoid populated channels
-func shuffleVCs(session *discordgo.Session, msg *discordgo.MessageCreate) {
-	// delete all voice channels
-	guild, _ := session.State.Guild(msg.GuildID)
-	for _, channel := range guild.Channels {
-		if channel.Type == discordgo.ChannelTypeGuildVoice {
-			//! deleting populated channels is causing error "Unknown Channel"
-			if _, err := session.ChannelDelete(channel.ID); err != nil {
-				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-			}
-		}
-	}
-
-	log.Println("shuffle: cleared all channels")
-
-	// remake the new channels, drawing new names
-	for i := 0; i < BUFFER_CHANNELS; i++ {
-		makeNewVoiceChannel(session, guild.ID)
-	}
-}

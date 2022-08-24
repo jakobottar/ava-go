@@ -25,11 +25,17 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "shuffle",
+			Description: "shuffle voice channels",
+		},
 	}
 
 	CommandHandlers = map[string]func(session *discordgo.Session, interaction *discordgo.InteractionCreate){
 		"ping": func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught ping command")
+
+			// respond to interaction with success message
 			session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -43,6 +49,7 @@ var (
 			// get map of options
 			optionMap := mapOptions(interaction)
 
+			// respond to interaction with success message
 			// TODO: I don't think I can not respond, but at least I can hide the response
 			session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -57,6 +64,36 @@ var (
 				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 				return
 			}
+		},
+		"shuffle": func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+			log.Println("slashhandler: caught shuffle command")
+
+			// delete all voice channels
+			guild, _ := session.State.Guild("379276406326165515")
+			for _, channel := range guild.Channels {
+				if channel.Type == discordgo.ChannelTypeGuildVoice {
+					//! deleting populated channels is causing error "Unknown Channel"
+					if _, err := session.ChannelDelete(channel.ID); err != nil {
+						log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+					}
+				}
+			}
+
+			log.Println("shuffle: cleared all channels")
+
+			// remake the new channels, drawing new names
+			for i := 0; i < BUFFER_CHANNELS; i++ {
+				makeNewVoiceChannel(session, guild.ID)
+			}
+
+			// respond to interaction with success message
+			session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Voice channels shuffled!",
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
 		},
 	}
 )
