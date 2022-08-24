@@ -38,9 +38,6 @@ func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
 		args := words[1:]                    // get the rest of the message
 
 		switch command { // switch on command word
-		case "echo": // echo the message that was sent
-			log.Println("msghandler: caught echo command")
-			echo(session, msg, args)
 
 		case "remindme", "remind":
 			log.Println("msghandler: caught remindme command")
@@ -68,8 +65,14 @@ func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate
 	// get map of options
 	optionMap := mapOptions(interaction)
 
+	msg := "<a:glizzyR:991176701063221338>" + optionMap["content"].StringValue() + "<a:glizzyL:991176582402150531>"
+	if _, err := session.ChannelMessageSend(interaction.ChannelID, msg); err != nil {
+		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+		return
+	}
+
 	// respond to interaction with success message
-	// TODO: I don't think I can not respond, but at least I can hide the response
+	//* I don't think I can not respond, but at least I can hide the response
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -77,24 +80,29 @@ func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
-
-	msg := "<a:glizzyR:991176701063221338>" + optionMap["content"].StringValue() + "<a:glizzyL:991176582402150531>"
-	if _, err := session.ChannelMessageSend(interaction.ChannelID, msg); err != nil {
-		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-		return
-	}
 }
 
-// echo command driver function, echos back eveything after !echo
-// TODO: return errors, handle in MessageHandler
-func echo(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
+// echo command driver function, echos back `content`
+func echo(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	// get map of options
+	optionMap := mapOptions(interaction)
+
 	// return a message back to the channel, echoing whatever is in the args
-	if _, err := session.ChannelMessageSend(msg.ChannelID, strings.Join(args, " ")); err != nil {
+	if _, err := session.ChannelMessageSend(interaction.ChannelID, optionMap["content"].StringValue()); err != nil {
 		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
 	}
 
-	log.Println("echo: echoing '", strings.Join(args, " "), "'")
+	log.Println("echo: echoing '", optionMap["content"].StringValue(), "'")
+
+	// respond to interaction with success message
+	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Echoed!",
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	})
 }
 
 // remindme command driver function, takes commands in the order: !remindme <username> <duration> <unit> <message>

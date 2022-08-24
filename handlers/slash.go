@@ -29,6 +29,18 @@ var (
 			Name:        "shuffle",
 			Description: "shuffle voice channels",
 		},
+		{
+			Name:        "echo",
+			Description: "echo back `content`",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "content",
+					Description: "content to be echoed back",
+					Required:    true,
+				},
+			},
+		},
 	}
 
 	CommandHandlers = map[string]func(session *discordgo.Session, interaction *discordgo.InteractionCreate){
@@ -44,6 +56,10 @@ var (
 		"shuffle": func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught shuffle command")
 			shuffle(session, interaction)
+		},
+		"echo": func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+			log.Println("slashhandler: caught echo command")
+			echo(session, interaction)
 		},
 	}
 )
