@@ -24,13 +24,12 @@ func start() (err error) {
 
 	// declare intents (needed to be able to get member info)
 	goBot.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
-	goBot.AddHandler(handlers.MessageHandler)
 	goBot.AddHandler(handlers.VoiceStateHandler)
 
 	// add slash command handlers
-	goBot.AddHandler(func(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
-		if handler, ok := handlers.CommandHandlers[interaction.ApplicationCommandData().Name]; ok {
-			handler(session, interaction)
+	goBot.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if handler, ok := handlers.CommandHandlers[i.ApplicationCommandData().Name]; ok {
+			handler(s, i)
 		}
 	})
 

@@ -4,50 +4,10 @@ package handlers
 import (
 	"fmt"
 	"log"
-	"regexp"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
-
-const BOT_PREFIX = "!"
-
-func MessageHandler(session *discordgo.Session, msg *discordgo.MessageCreate) {
-	// if the message is from a bot, return (prevent loops)
-	//  or if the message is only an image, it's content is empty
-	if msg.Author.Bot || msg.Content == "" {
-		return
-	}
-
-	// ping command - check for life
-	if msg.Content == "ping" {
-		log.Println("msghandler: caught ping command")
-		// mention the sender back and say pong!
-		if _, err := session.ChannelMessageSend(msg.ChannelID, msg.Author.Mention()+", pong!"); err != nil {
-			log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-			return
-		}
-	}
-
-	// if the first character of the message matches our bot prefix
-	if msg.Content[0:1] == BOT_PREFIX {
-		words := strings.Fields(msg.Content) // split message string on space
-		command := words[0][1:]              // get first word and remove BotPrefix
-		args := words[1:]                    // get the rest of the message
-
-		switch command { // switch on command word
-
-		case "remindme", "remind":
-			log.Println("msghandler: caught remindme command")
-			remindMe(session, msg, args)
-
-		default: // if the command does not match an existing one, return
-			return
-		}
-	}
-}
 
 // /ping driver function, responds to verify bot life
 func ping(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
@@ -76,7 +36,7 @@ func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "🌭",
+			Content: ":hotdog:",
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
@@ -105,93 +65,63 @@ func echo(session *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	})
 }
 
-// remindme command driver function, takes commands in the order: !remindme <username> <duration> <unit> <message>
-// TODO: return errors, handle in MessageHandler
-func remindMe(session *discordgo.Session, msg *discordgo.MessageCreate, args []string) {
-	if len(args) < 2 {
-		return
-	}
+// remindme command driver function
+func remindMe(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 
-	log.Println("remindme: parsing 'remindme' args...")
+	// get map of options
+	optionMap := mapOptions(interaction)
 
-	var timerLength int = 1                  // timer length
-	var mention *discordgo.User = msg.Author // find user to mention
-	var unitStr string = "m"                 // find timer unit
-	var message string = ":wave:"            // find message
+	// set timer length
+	timerLength := optionMap["time"].IntValue()
 
-	var mentionName []string
-	var err error
-	var unitIdx int
-
-	for i, arg := range args {
-		timerLength, err = strconv.Atoi(arg)
-		if err == nil {
-			unitIdx = i + 1
-			break
-		}
-		mentionName = append(mentionName, arg)
-	}
-
-	if len(mentionName) == 0 { // if there's nothing before the duration
-		mention = msg.Author
-	} else { // find the mentioned user
-		name := strings.Join(mentionName, " ")
-		id := string(regexp.MustCompile(`\d{18}`).Find([]byte(name)))
-		if id != "" { // if 'name' is a user id or mention
-			mention, err = session.User(id)
-			if err != nil {
-				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-				return
-			}
-		} else { // if 'name' is nickname or username
-			guild, err := session.State.Guild(msg.GuildID)
-			if err != nil {
-				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-				return
-			}
-
-			for _, member := range guild.Members {
-				if name == member.User.Username || name == member.Nick {
-					mention = member.User
-					break
-				}
-			}
-		}
-	}
-
-	// convert duration arg to time.Duration value
-	unitStr = strings.ToLower(args[unitIdx])
+	// convert unit arg to time.Duration value
 	var unit time.Duration
-	switch unitStr {
-	case "minutes", "minute", "mins", "min", "m":
+	switch optionMap["unit"].StringValue() {
+	case "min":
 		unit = time.Minute
-		unitStr = "minutes"
-	case "seconds", "second", "secs", "sec", "s":
+	case "sec":
 		unit = time.Second
-		unitStr = "seconds"
-	case "hours", "hour", "hrs", "hr", "h":
+	case "hr":
 		unit = time.Hour
-		unitStr = "hours"
 	default:
 		return
 	}
 
-	if unitIdx == len(args)-1 {
-		message = ":wave:"
+	// set reminder mention
+	var mention *discordgo.User
+	if interaction.Member.User != nil {
+		// member is only populated on servers
+		mention = interaction.Member.User
 	} else {
-		message = strings.Join(args[unitIdx+1:], " ")
+		// user is populated in DMs
+		mention = interaction.User
 	}
 
-	log.Printf("remindme: set for %s in %d %s\n", mention.Username, timerLength, unitStr)
-
-	// send confirmation message
-	if _, err = session.ChannelMessageSend(msg.ChannelID, fmt.Sprintf("Reminder set for %d %s.", timerLength, unitStr)); err != nil {
-		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-		return
+	pronoun := "you"
+	if optionMap["user"] != nil {
+		mention = optionMap["user"].UserValue(session)
+		pronoun = "them"
 	}
-	time.Sleep(time.Duration(timerLength) * unit) // wait
+
 	// set reminder message
-	if _, err = session.ChannelMessageSend(msg.ChannelID, mention.Mention()+" "+message); err != nil {
+	reminderMessage := ":wave:"
+	if optionMap["message"] != nil {
+		reminderMessage = optionMap["message"].StringValue()
+	}
+
+	// respond to interaction with success message
+	responseMessage := fmt.Sprintf("Okay, I will remind %s in %d %s.", pronoun, timerLength, optionMap["unit"].StringValue())
+	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: responseMessage,
+		},
+	})
+
+	time.Sleep(time.Duration(timerLength) * unit) // wait
+
+	// set reminder message
+	if _, err := session.ChannelMessageSend(interaction.ChannelID, mention.Mention()+" "+reminderMessage); err != nil {
 		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
 	}
