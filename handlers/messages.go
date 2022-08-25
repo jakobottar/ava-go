@@ -25,6 +25,7 @@ func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate
 	// get map of options
 	optionMap := mapOptions(interaction)
 
+	//TODO: update glizzyR and glizzyL to be cross-server.
 	msg := fmt.Sprintf("<a:glizzyR:991176701063221338>%s<a:glizzyL:991176582402150531>", optionMap["content"].StringValue())
 	if _, err := session.ChannelMessageSend(interaction.ChannelID, msg); err != nil {
 		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
@@ -32,7 +33,6 @@ func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate
 	}
 
 	// respond to interaction with success message
-	//* I don't think I can not respond, but at least I can hide the response
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

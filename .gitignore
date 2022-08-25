@@ -2,4 +2,4 @@
 ava-go
 
 # env variables
-*.env
+.env
