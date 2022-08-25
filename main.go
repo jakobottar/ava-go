@@ -46,6 +46,9 @@ func start() (err error) {
 		return errors.New("couldn't find environment variable $GUILD_ID")
 	}
 
+	// fetch glizzy emojis
+	handlers.FetchGlizzy(goBot, guildID)
+
 	// add commands
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(handlers.Commands))
 	for idx, cmd := range handlers.Commands {
