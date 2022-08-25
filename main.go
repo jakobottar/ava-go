@@ -3,6 +3,7 @@ package main
 import (
 	"ava-go/handlers"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -19,7 +20,7 @@ func start() (err error) {
 
 	goBot, err := discordgo.New("Bot " + token)
 	if err != nil {
-		return errors.New("bot auth: " + err.Error())
+		return fmt.Errorf("bot auth: %s", err.Error())
 	}
 
 	// declare intents (needed to be able to get member info)
@@ -34,7 +35,7 @@ func start() (err error) {
 	})
 
 	if err = goBot.Open(); err != nil {
-		return errors.New("bot open: " + err.Error())
+		return fmt.Errorf("bot open: %s", err.Error())
 	}
 
 	log.Println("bot is running!")
@@ -44,7 +45,7 @@ func start() (err error) {
 	for idx, cmd := range handlers.Commands {
 		regCmd, err := goBot.ApplicationCommandCreate(goBot.State.User.ID, "379276406326165515", cmd)
 		if err != nil {
-			return errors.New("cannot create command " + cmd.Name + ": " + err.Error())
+			return fmt.Errorf("cannot create command %s: %s", cmd.Name, err.Error())
 		}
 		registeredCommands[idx] = regCmd
 	}
@@ -59,7 +60,7 @@ func start() (err error) {
 	// clean up added commands
 	for _, cmd := range registeredCommands {
 		if err := goBot.ApplicationCommandDelete(goBot.State.User.ID, "379276406326165515", cmd.ID); err != nil {
-			return errors.New("cannot delete command " + cmd.Name + ": " + err.Error())
+			return fmt.Errorf("cannot delete command %s: %s", cmd.Name, err.Error())
 		}
 	}
 

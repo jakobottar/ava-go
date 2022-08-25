@@ -25,7 +25,7 @@ func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate
 	// get map of options
 	optionMap := mapOptions(interaction)
 
-	msg := "<a:glizzyR:991176701063221338>" + optionMap["content"].StringValue() + "<a:glizzyL:991176582402150531>"
+	msg := fmt.Sprintf("<a:glizzyR:991176701063221338>%s<a:glizzyL:991176582402150531>", optionMap["content"].StringValue())
 	if _, err := session.ChannelMessageSend(interaction.ChannelID, msg); err != nil {
 		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
@@ -53,7 +53,7 @@ func echo(session *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		return
 	}
 
-	log.Println("echo: echoing '", optionMap["content"].StringValue(), "'")
+	log.Printf("echo: echoing '%s'\n", optionMap["content"].StringValue())
 
 	// respond to interaction with success message
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
