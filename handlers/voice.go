@@ -1,3 +1,4 @@
+// Functions handling voice channels
 package handlers
 
 import (
@@ -8,8 +9,6 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
-
-// TODO: make sure I'm catching (and logging) all errors
 
 const BUFFER_CHANNELS = 2 // number of empty channels to leave
 
@@ -39,7 +38,6 @@ func VoiceStateHandler(session *discordgo.Session, voiceState *discordgo.VoiceSt
 }
 
 // generate a map of voice channel id:population
-// TODO: return errors, handle in VoiceHandler
 func getVCMembers(guildChannels []*discordgo.Channel, voiceStates []*discordgo.VoiceState) map[string]int {
 	memberCount := make(map[string]int)
 
@@ -59,10 +57,40 @@ func getVCMembers(guildChannels []*discordgo.Channel, voiceStates []*discordgo.V
 	return memberCount
 }
 
+// /shuffle driver function, deletes all voice channels and recreates them with new names
+func shuffle(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+	// delete all voice channels
+	guild, _ := session.State.Guild("379276406326165515")
+	for _, channel := range guild.Channels {
+		if channel.Type == discordgo.ChannelTypeGuildVoice {
+			//! deleting populated channels is causing error "Unknown Channel"
+			if _, err := session.ChannelDelete(channel.ID); err != nil {
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+			}
+		}
+	}
+
+	log.Println("shuffle: cleared all channels")
+
+	// remake the new channels, drawing new names
+	for i := 0; i < BUFFER_CHANNELS; i++ {
+		makeNewVoiceChannel(session, guild.ID)
+	}
+
+	// respond to interaction with success message
+	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Voice channels shuffled!",
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	})
+}
+
 // make a new voice channel with a random name
-// TODO: return errors, handle in VoiceHandler
 func makeNewVoiceChannel(session *discordgo.Session, guildID string) {
 	// load channel names json file
+	// TODO: ioutil is deprecated, use something else
 	var channelNames []string
 	file, _ := ioutil.ReadFile("./channel_names.json")
 	_ = json.Unmarshal(file, &channelNames)
@@ -79,27 +107,4 @@ func makeNewVoiceChannel(session *discordgo.Session, guildID string) {
 	})
 
 	log.Printf("newvoicechannel: added new channel '%s'\n", channelName)
-}
-
-// delete all voice channels and make new ones, to change names
-// TODO: make this avoid populated channels
-// TODO: return errors, handle in VoiceHandler
-func shuffleVCs(session *discordgo.Session, msg *discordgo.MessageCreate) {
-	// delete all voice channels
-	guild, _ := session.State.Guild(msg.GuildID)
-	for _, channel := range guild.Channels {
-		if channel.Type == discordgo.ChannelTypeGuildVoice {
-			//! deleting populated channels is causing error "Unknown Channel"
-			if _, err := session.ChannelDelete(channel.ID); err != nil {
-				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-			}
-		}
-	}
-
-	log.Println("shuffle: cleared all channels")
-
-	// remake the new channels, drawing new names
-	for i := 0; i < BUFFER_CHANNELS; i++ {
-		makeNewVoiceChannel(session, guild.ID)
-	}
 }
