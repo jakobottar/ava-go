@@ -3,4 +3,6 @@ ava-go
 *.log
 *.md
 *.txt
+.env.example
+.github
 LICENSE

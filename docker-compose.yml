@@ -5,3 +5,4 @@ services:
     restart: unless-stopped
     environment:
       - BOT_TOKEN
+      - GUILD_ID

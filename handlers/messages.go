@@ -9,6 +9,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var (
+	glizzyR *discordgo.Emoji
+	glizzyL *discordgo.Emoji
+)
+
 // /ping driver function, responds to verify bot life
 func ping(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	// respond to interaction with success message
@@ -20,19 +25,36 @@ func ping(session *discordgo.Session, interaction *discordgo.InteractionCreate) 
 	})
 }
 
+// get glizzy emotes from server for use in the /glizzy command
+func FetchGlizzy(session *discordgo.Session, guildID string) (err error) {
+	guild, err := session.Guild(guildID)
+	if err != nil {
+		return fmt.Errorf("fetchglizzy: %s", err.Error())
+	}
+
+	for _, emoji := range guild.Emojis {
+		if emoji.Name == "glizzyR" {
+			glizzyR = emoji
+		} else if emoji.Name == "glizzyL" {
+			glizzyL = emoji
+		}
+	}
+
+	return nil
+}
+
 // /glizzy command driver function, prints glizzyL, `content`, glizzyR
 func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
 	// get map of options
 	optionMap := mapOptions(interaction)
 
-	msg := fmt.Sprintf("<a:glizzyR:991176701063221338>%s<a:glizzyL:991176582402150531>", optionMap["content"].StringValue())
+	msg := fmt.Sprintf("%s%s%s", glizzyR.MessageFormat(), optionMap["content"].StringValue(), glizzyL.MessageFormat())
 	if _, err := session.ChannelMessageSend(interaction.ChannelID, msg); err != nil {
 		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
 		return
 	}
 
 	// respond to interaction with success message
-	//* I don't think I can not respond, but at least I can hide the response
 	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

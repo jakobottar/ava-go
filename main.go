@@ -40,10 +40,19 @@ func start() (err error) {
 
 	log.Println("bot is running!")
 
+	// lookup guild id from .env
+	guildID, ok := os.LookupEnv("GUILD_ID")
+	if !ok {
+		return errors.New("couldn't find environment variable $GUILD_ID")
+	}
+
+	// fetch glizzy emojis
+	handlers.FetchGlizzy(goBot, guildID)
+
 	// add commands
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(handlers.Commands))
 	for idx, cmd := range handlers.Commands {
-		regCmd, err := goBot.ApplicationCommandCreate(goBot.State.User.ID, "379276406326165515", cmd)
+		regCmd, err := goBot.ApplicationCommandCreate(goBot.State.User.ID, guildID, cmd)
 		if err != nil {
 			return fmt.Errorf("cannot create command %s: %s", cmd.Name, err.Error())
 		}
@@ -59,7 +68,7 @@ func start() (err error) {
 
 	// clean up added commands
 	for _, cmd := range registeredCommands {
-		if err := goBot.ApplicationCommandDelete(goBot.State.User.ID, "379276406326165515", cmd.ID); err != nil {
+		if err := goBot.ApplicationCommandDelete(goBot.State.User.ID, guildID, cmd.ID); err != nil {
 			return fmt.Errorf("cannot delete command %s: %s", cmd.Name, err.Error())
 		}
 	}
