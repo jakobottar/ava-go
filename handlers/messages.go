@@ -15,23 +15,26 @@ var (
 )
 
 // /ping driver function, responds to verify bot life
-func ping(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+func ping(session *discordgo.Session, interaction *discordgo.InteractionCreate) error {
 	// respond to interaction with success message
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+	err := session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: "pong!",
 		},
 	})
+
+	return err
 }
 
 // get glizzy emotes from server for use in the /glizzy command
-func FetchGlizzy(session *discordgo.Session, guildID string) (err error) {
+func FetchGlizzy(session *discordgo.Session, guildID string) error {
 	guild, err := session.Guild(guildID)
 	if err != nil {
-		return fmt.Errorf("fetchglizzy: %s", err.Error())
+		return fmt.Errorf("fetchglizzy: could not get guild ID %s", err.Error())
 	}
 
+	// TODO: catch if we don't find both emotes, throw error
 	for _, emoji := range guild.Emojis {
 		if emoji.Name == "glizzyR" {
 			glizzyR = emoji
@@ -44,52 +47,53 @@ func FetchGlizzy(session *discordgo.Session, guildID string) (err error) {
 }
 
 // /glizzy command driver function, prints glizzyL, `content`, glizzyR
-func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate) error {
 	// get map of options
 	optionMap := mapOptions(interaction)
 
 	msg := fmt.Sprintf("%s%s%s", glizzyR.MessageFormat(), optionMap["content"].StringValue(), glizzyL.MessageFormat())
 	if _, err := session.ChannelMessageSend(interaction.ChannelID, msg); err != nil {
-		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-		return
+		return fmt.Errorf("glizzy: %s", err.Error())
 	}
 
 	// respond to interaction with success message
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+	err := session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: ":hotdog:",
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
+
+	return err
 }
 
 // echo command driver function, echos back `content`
-func echo(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
+func echo(session *discordgo.Session, interaction *discordgo.InteractionCreate) error {
 	// get map of options
 	optionMap := mapOptions(interaction)
 
 	// return a message back to the channel, echoing whatever is in the args
 	if _, err := session.ChannelMessageSend(interaction.ChannelID, optionMap["content"].StringValue()); err != nil {
-		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-		return
+		return fmt.Errorf("echo: could not send message %s", err.Error())
 	}
 
 	log.Printf("echo: echoing '%s'\n", optionMap["content"].StringValue())
 
 	// respond to interaction with success message
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+	err := session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: "Echoed!",
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
+
+	return err
 }
 
 // remindme command driver function
-func remindMe(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
-
+func remindMe(session *discordgo.Session, interaction *discordgo.InteractionCreate) error {
 	// get map of options
 	optionMap := mapOptions(interaction)
 
@@ -98,6 +102,7 @@ func remindMe(session *discordgo.Session, interaction *discordgo.InteractionCrea
 
 	// convert unit arg to time.Duration value
 	var unit time.Duration
+
 	switch optionMap["unit"].StringValue() {
 	case "min":
 		unit = time.Minute
@@ -106,7 +111,7 @@ func remindMe(session *discordgo.Session, interaction *discordgo.InteractionCrea
 	case "hr":
 		unit = time.Hour
 	default:
-		return
+		return fmt.Errorf("remindMe: Invalid Time Unit '%s'", optionMap["unit"].StringValue())
 	}
 
 	// set reminder mention
@@ -120,6 +125,7 @@ func remindMe(session *discordgo.Session, interaction *discordgo.InteractionCrea
 	}
 
 	pronoun := "you"
+
 	if optionMap["user"] != nil {
 		mention = optionMap["user"].UserValue(session)
 		pronoun = "them"
@@ -133,19 +139,25 @@ func remindMe(session *discordgo.Session, interaction *discordgo.InteractionCrea
 
 	// respond to interaction with success message
 	responseMessage := fmt.Sprintf("Okay, I will remind %s in %d %s.", pronoun, timerLength, optionMap["unit"].StringValue())
-	session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+	err := session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: responseMessage,
 		},
 	})
 
+	if err != nil {
+		return fmt.Errorf("remindMe: could not send message %s", err.Error())
+	}
+
 	time.Sleep(time.Duration(timerLength) * unit) // wait
 
 	// set reminder message
 	if _, err := session.ChannelMessageSend(interaction.ChannelID, mention.Mention()+" "+reminderMessage); err != nil {
-		log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
-		return
+		return fmt.Errorf("remindMe: could not send message %s", err.Error())
 	}
+
 	log.Printf("remindme: reminder for %s sent\n", mention.Username)
+
+	return nil
 }
