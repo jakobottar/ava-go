@@ -24,7 +24,11 @@ func ping(session *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		},
 	})
 
-	return err
+	if err != nil {
+		return fmt.Errorf("ping: could not send message %s", err.Error())
+	}
+
+	return nil
 }
 
 // get glizzy emotes from server for use in the /glizzy command
@@ -68,7 +72,11 @@ func glizzy(session *discordgo.Session, interaction *discordgo.InteractionCreate
 		},
 	})
 
-	return err
+	if err != nil {
+		return fmt.Errorf("glizzy: could not send message %s", err.Error())
+	}
+
+	return nil
 }
 
 // echo command driver function, echos back `content`
@@ -92,7 +100,11 @@ func echo(session *discordgo.Session, interaction *discordgo.InteractionCreate) 
 		},
 	})
 
-	return err
+	if err != nil {
+		return fmt.Errorf("echo: could not send message %s", err.Error())
+	}
+
+	return nil
 }
 
 // remindme command driver function

@@ -94,7 +94,11 @@ func shuffle(session *discordgo.Session, interaction *discordgo.InteractionCreat
 		},
 	})
 
-	return err
+	if err != nil {
+		return fmt.Errorf("shuffle: could not send message %s", err.Error())
+	}
+
+	return nil
 }
 
 // make a new voice channel with a random name
