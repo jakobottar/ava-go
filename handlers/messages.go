@@ -34,13 +34,16 @@ func FetchGlizzy(session *discordgo.Session, guildID string) error {
 		return fmt.Errorf("fetchglizzy: could not get guild ID %s", err.Error())
 	}
 
-	// TODO: catch if we don't find both emotes, throw error
 	for _, emoji := range guild.Emojis {
 		if emoji.Name == "glizzyR" {
 			glizzyR = emoji
 		} else if emoji.Name == "glizzyL" {
 			glizzyL = emoji
 		}
+	}
+
+	if glizzyL == nil && glizzyR == nil {
+		return fmt.Errorf("fetchglizzy: could not find both glizzyR and glizzyL, make sure your emojis are named properly")
 	}
 
 	return nil
