@@ -12,15 +12,15 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func start() (err error) {
+func start() error {
 	token, ok := os.LookupEnv("BOT_TOKEN")
 	if !ok {
-		return errors.New("couldn't find environment variable $BOT_TOKEN")
+		return errors.New("start: couldn't find environment variable $BOT_TOKEN")
 	}
 
 	goBot, err := discordgo.New("Bot " + token)
 	if err != nil {
-		return fmt.Errorf("bot auth: %s", err.Error())
+		return fmt.Errorf("start: bot create %s", err.Error())
 	}
 
 	// declare intents (needed to be able to get member info)
@@ -35,7 +35,7 @@ func start() (err error) {
 	})
 
 	if err = goBot.Open(); err != nil {
-		return fmt.Errorf("bot open: %s", err.Error())
+		return fmt.Errorf("start: bot open %s", err.Error())
 	}
 
 	log.Println("bot is running!")
@@ -43,19 +43,26 @@ func start() (err error) {
 	// lookup guild id from .env
 	guildID, ok := os.LookupEnv("GUILD_ID")
 	if !ok {
-		return errors.New("couldn't find environment variable $GUILD_ID")
+		return errors.New("start: couldn't find environment variable $GUILD_ID")
 	}
-
-	// fetch glizzy emojis
-	handlers.FetchGlizzy(goBot, guildID)
 
 	// add commands
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(handlers.Commands))
+
 	for idx, cmd := range handlers.Commands {
+		if cmd.Name == "glizzy" {
+			// fetch glizzy emojis
+			if err := handlers.FetchGlizzy(goBot, guildID); err != nil {
+				log.Println("\033[33mWARNING:\033[0m skipping glizzy -", err.Error())
+				continue
+			}
+		}
+
 		regCmd, err := goBot.ApplicationCommandCreate(goBot.State.User.ID, guildID, cmd)
 		if err != nil {
-			return fmt.Errorf("cannot create command %s: %s", cmd.Name, err.Error())
+			return fmt.Errorf("start: cannot create command %s: %s", cmd.Name, err.Error())
 		}
+
 		registeredCommands[idx] = regCmd
 	}
 
@@ -68,8 +75,10 @@ func start() (err error) {
 
 	// clean up added commands
 	for _, cmd := range registeredCommands {
-		if err := goBot.ApplicationCommandDelete(goBot.State.User.ID, guildID, cmd.ID); err != nil {
-			return fmt.Errorf("cannot delete command %s: %s", cmd.Name, err.Error())
+		if cmd != nil { // in case we skip something when registering commands
+			if err := goBot.ApplicationCommandDelete(goBot.State.User.ID, guildID, cmd.ID); err != nil {
+				return fmt.Errorf("start: cannot delete command %s: %s", cmd.Name, err.Error())
+			}
 		}
 	}
 

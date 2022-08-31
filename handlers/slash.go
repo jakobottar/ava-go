@@ -90,36 +90,46 @@ var (
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"ping": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught ping command")
-			ping(s, i)
+			if err := ping(s, i); err != nil {
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+			}
 		},
 		"glizzy": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught glizzy command")
-			glizzy(s, i)
-
+			if err := glizzy(s, i); err != nil {
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+			}
 		},
 		"shuffle": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught shuffle command")
-			shuffle(s, i)
+			if err := shuffle(s, i); err != nil {
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+			}
 		},
 		"echo": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught echo command")
-			echo(s, i)
+			if err := echo(s, i); err != nil {
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+			}
 		},
 		"remindme": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			log.Println("slashhandler: caught remindme command")
-			remindMe(s, i)
+			if err := remindMe(s, i); err != nil {
+				log.Println("\u001b[31mERROR:\u001b[0m", err.Error())
+			}
 		},
 	}
 )
 
 // convert slashcommand options to a map object
-func mapOptions(interaction *discordgo.InteractionCreate) (optionMap map[string]*discordgo.ApplicationCommandInteractionDataOption) {
+func mapOptions(interaction *discordgo.InteractionCreate) map[string]*discordgo.ApplicationCommandInteractionDataOption {
 	// get map of options
 	options := interaction.ApplicationCommandData().Options
-	optionMap = make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+
 	for _, opt := range options {
 		optionMap[opt.Name] = opt
 	}
 
-	return
+	return optionMap
 }
